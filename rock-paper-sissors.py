@@ -54,7 +54,7 @@ while running:
     # RENDER YOUR GAME HERE
     for iter in enumerate(icons):
         x = margin + (asset_width + space_between) * iter[0]
-        y = (screen_height - asset_height)/2
+        y = (screen_height - asset_height) - 150
         pygame.draw.rect(screen, orange, pygame.Rect((x, y), (asset_width, asset_height)))
         screen.blit(iter[1], dest=(x, y))
 
