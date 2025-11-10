@@ -2,7 +2,17 @@
 import pygame
 import os
 import random
-from turning_things_into_functions import fadingEfect, activator
+from turning_things_into_functions import fadingEfect, activator, handle_fade
+
+
+class GameState:
+    def __init__(self):
+        self.selected_item = 1
+        self.running = True
+        self.timer = 0
+        self.fade_alpha = 255
+        self.fading_active = False
+
 
 # pygame setup
 pygame.init()
@@ -33,6 +43,8 @@ stone = pygame.image.load(os.path.join("assets", "stone.png"))
 icons = [lovly_stone, lovly_paper, lovly_sissors]
 
 # In-game state
+state = GameState()
+
 running = True
 selected_item = 1
 timerRock = 0
@@ -47,7 +59,7 @@ accu = "rock"
 timerAL = 0
 
 while running:
-    deltaTime = clock.get_time() / 1000 
+    deltaTime = clock.get_time() / 1000
 
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
@@ -66,7 +78,10 @@ while running:
                 selected_item = 0
             elif selected_item < 0:
                 selected_item = 2
-            
+
+            if event.key == pygame.K_SPACE:
+                activator(1, state, lovly_sissors, lovly_stone, event)
+
             # if locked == False:
             #     if event.key == pygame.K_SPACE and selected_item == 0 and (timerRock == 0 or timerRock >= 1.5):
             #         start_timerRock = True
@@ -83,10 +98,9 @@ while running:
             #         timerSissors = 0
             #         locked = True
 
-            activator(1,lovly_sissors, lovly_stone)
-    
     # fading the icons and orange
-    fadingEfect(lovly_sissors, lovly_stone)
+    handle_fade(lovly_sissors, lovly_stone, state)
+
     # if start_timerRock:
     #     timerRock += 1 / 60
     #     lovly_sissors.set_alpha(max(0, 255 - (timerRock / 1.5 * 255)))
@@ -121,7 +135,6 @@ while running:
     # fill the screen with a color to wipe away anything from last frame
     screen.fill("grey")
 
-
     timerAL += 1 / 60
     if timerAL >= 1 / 3:
         if accu == "rock":
@@ -133,31 +146,35 @@ while running:
         else:
             accu = "rock"
             timerAL = 0
-    
+
     # RENDER YOUR GAME HERE
     for iter in enumerate(icons):
         x = margin + (asset_width + space_between) * iter[0]
         y = (screen_height - asset_height) - 150
 
         # create fading orange surface with alpha
-        #wtf
-        orange_surface = pygame.Surface((asset_width, asset_height), pygame.SRCALPHA)
+        # wtf
+        orange_surface = pygame.Surface(
+            (asset_width, asset_height), pygame.SRCALPHA)
         orange_surface.fill((orange.r, orange.g, orange.b, fade_alpha))
         screen.blit(orange_surface, (x, y))
 
         # blit icons as before
         screen.blit(iter[1], dest=(x, y))
-        
-        # second static orange rect (unchanged)
-        pygame.draw.rect(screen, orange, pygame.Rect((margin + asset_width + space_between, 100), (asset_width, asset_height)))
-        if accu == "rock":
-            screen.blit(stone, dest=(margin + asset_width + space_between, 100))
-        elif accu == "paper":
-            screen.blit(paper, dest=(margin + asset_width + space_between, 100))
-        elif accu == "sissors":
-            screen.blit(sissors, dest=(margin + asset_width + space_between, 100))
 
-        
+        # second static orange rect (unchanged)
+        pygame.draw.rect(screen, orange, pygame.Rect(
+            (margin + asset_width + space_between, 100), (asset_width, asset_height)))
+        if accu == "rock":
+            screen.blit(stone, dest=(
+                margin + asset_width + space_between, 100))
+        elif accu == "paper":
+            screen.blit(paper, dest=(
+                margin + asset_width + space_between, 100))
+        elif accu == "sissors":
+            screen.blit(sissors, dest=(
+                margin + asset_width + space_between, 100))
+
         # black border on selected item
         if iter[0] == selected_item:
             points = [
@@ -166,10 +183,10 @@ while running:
                 (x + asset_width, y + asset_height),
                 (x, y + asset_height),
             ]
-            pygame.draw.lines(screen, black, closed=True, points=points, width=10)
+            pygame.draw.lines(screen, black, closed=True,
+                              points=points, width=10)
 
     pygame.display.flip()
     clock.tick(60)  # limits FPS to 60
 
 pygame.quit()
-
