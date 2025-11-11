@@ -2,7 +2,7 @@
 import pygame
 import os
 import random
-from turning_things_into_functions import fadingEfect, activator, handle_fade
+from turning_things_into_functions import fadingEfect, activator, handle_fade, change_icon, draw_icon
 
 
 class GameState:
@@ -20,6 +20,22 @@ class GameState:
         self.lovly_stone = pygame.image.load(
             os.path.join("assets", "stone.png"))
         self.locked = False
+        self.enemy_alpha = 255
+        self.accu = "rock"
+        self.timerAL = 0
+        self.screen_width = 1000
+        self.screen_height = 1000
+        self.asset_width = 256
+        self.asset_height = 256
+        self.space_between = 64
+        self.screen = pygame.display.set_mode((screen_width, screen_height))
+        self.margin = (screen_width - (asset_width *
+                       3 + space_between * 2)) / 2
+        self.sissors = pygame.image.load(os.path.join("assets", "sissors.png"))
+        self.paper = pygame.image.load(os.path.join("assets", "paper.png"))
+        self.stone = pygame.image.load(os.path.join("assets", "stone.png"))
+        self.font = font
+        self.selected_item = 1
 
 
 # pygame setup
@@ -33,27 +49,16 @@ screen_height = 1000
 asset_width = 256
 asset_height = 256
 space_between = 64
-margin = (screen_width - (asset_width * 3 + space_between * 2)) / 2
-
+font = pygame.font.SysFont("Arail", 10)
 # Setup
-screen = pygame.display.set_mode((screen_width, screen_height))
 clock = pygame.time.Clock()
 
-# Assets
-# lovly_sissors = pygame.image.load(os.path.join("assets", "sissors.png"))
-# lovly_paper = pygame.image.load(os.path.join("assets", "paper.png"))
-# lovly_stone = pygame.image.load(os.path.join("assets", "stone.png"))
-
-sissors = pygame.image.load(os.path.join("assets", "sissors.png"))
-paper = pygame.image.load(os.path.join("assets", "paper.png"))
-stone = pygame.image.load(os.path.join("assets", "stone.png"))
 # In-game state
 state = GameState()
 icons = [state.lovly_stone, state.lovly_paper, state.lovly_sissors]
 
 
 running = True
-selected_item = 1
 timerRock = 0
 timerPaper = 0
 timerSissors = 0
@@ -62,12 +67,11 @@ start_timerPaper = False
 start_timerSissors = False
 locked = False
 fade_alpha = 255
-accu = "rock"
-timerAL = 0
 
 while running:
     deltaTime = clock.get_time() / 1000
 
+    # closing the screan
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
@@ -75,6 +79,7 @@ while running:
             if event.key == pygame.K_ESCAPE:
                 running = False
 
+            # chosing part
             if not state.locked:
                 if event.key == pygame.K_RIGHT:
                     state.selected_item += 1
@@ -86,6 +91,7 @@ while running:
             elif state.selected_item < 0:
                 state.selected_item = 2
 
+            # handling fading
             if not state.locked and event.key == pygame.K_SPACE:
                 if state.selected_item == 0:
                     activator(0, state, state.lovly_sissors,
@@ -97,102 +103,39 @@ while running:
                     activator(2, state, state.lovly_paper,
                               state.lovly_stone, event)
 
-            # if locked == False:
-            #     if event.key == pygame.K_SPACE and selected_item == 0 and (timerRock == 0 or timerRock >= 1.5):
-            #         start_timerRock = True
-            #         timerRock = 0
-            #         locked = True
-
-            #     if event.key == pygame.K_SPACE and selected_item == 1 and (timerPaper == 0 or timerPaper >= 1.5):
-            #         start_timerPaper = True
-            #         timerPaper = 0
-            #         locked = True
-
-            #     if event.key == pygame.K_SPACE and selected_item == 2 and (timerSissors == 0 or timerSissors >= 1.5):
-            #         start_timerSissors = True
-            #         timerSissors = 0
-            #         locked = True
-
     # fading the icons and orange
     handle_fade(1, state.lovly_sissors, state.lovly_stone, state)
 
     handle_fade(0, state.lovly_sissors, state.lovly_paper, state)
 
     handle_fade(2, state.lovly_paper, state.lovly_stone, state)
-    # if start_timerRock:
-    #     timerRock += 1 / 60
-    #     lovly_sissors.set_alpha(max(0, 255 - (timerRock / 1.5 * 255)))
-    #     lovly_paper.set_alpha(max(0, 255 - (timerRock / 1.5 * 255)))
-    #     fade_alpha = int(max(0, 255 - (timerRock / 1.5 * 255)))
-    #     if timerRock >= 1.5:
-    #         start_timerRock = False
-    #         lovly_paper.set_alpha(0)
-    #         lovly_sissors.set_alpha(0)
-    #         fade_alpha = 0
 
-    # if start_timerPaper:
-    #     timerPaper += 1 / 60
-    #     lovly_sissors.set_alpha(max(0, 255 - (timerPaper / 1.5 * 255)))
-    #     lovly_stone.set_alpha(max(0, 255 - (timerPaper / 1.5 * 255)))
-    #     fade_alpha = int(max(0, 255 - (timerPaper / 1.5 * 255)))
-    #     if timerPaper >= 1.5:
-    #         start_timerPaper = False
-    #         lovly_sissors.set_alpha(0)
-    #         lovly_stone.set_alpha(0)
+    state.screen.fill("grey")
 
-    # if start_timerSissors:
-    #     timerSissors += 1 / 60
-    #     lovly_stone.set_alpha(max(0, 255 - (timerSissors / 1.5 * 255)))
-    #     lovly_paper.set_alpha(max(0, 255 - (timerSissors / 1.5 * 255)))
-    #     fade_alpha = int(max(0, 255 - (timerSissors / 1.5 * 255)))
-    #     if timerSissors >= 1.5:
-    #         start_timerSissors = False
-    #         lovly_paper.set_alpha(0)
-    #         lovly_stone.set_alpha(0)
-
-    # fill the screen with a color to wipe away anything from last frame
-    screen.fill("grey")
-
-    timerAL += 1 / 60
-    if timerAL >= 1 / 3:
-        if accu == "rock":
-            accu = "paper"
-            timerAL = 0
-        elif accu == "paper":
-            accu = "sissors"
-            timerAL = 0
-        else:
-            accu = "rock"
-            timerAL = 0
+    state.timerAL += 1 / 60
+    if state.timerAL >= 1 / 3:
+        change_icon(state)
 
     # RENDER YOUR GAME HERE
     for iter in enumerate(icons):
-        x = margin + (asset_width + space_between) * iter[0]
+        x = state.margin + (asset_width + space_between) * iter[0]
         y = (screen_height - asset_height) - 150
 
         # create fading orange surface with alpha
         # wtf
         orange_surface = pygame.Surface(
             (asset_width, asset_height), pygame.SRCALPHA)
-        orange_surface.fill((orange.r, orange.g, orange.b, fade_alpha))
-        screen.blit(orange_surface, (x, y))
+        orange_surface.fill((orange.r, orange.g, orange.b, state.fade_alpha))
+        state.screen.blit(orange_surface, (x, y))
 
         # blit icons as before
-        screen.blit(iter[1], dest=(x, y))
+        state.screen.blit(iter[1], dest=(x, y))
 
         # second static orange rect (unchanged)
-        pygame.draw.rect(screen, orange, pygame.Rect(
-            (margin + asset_width + space_between, 100), (asset_width, asset_height)))
-        if accu == "rock":
-            screen.blit(stone, dest=(
-                margin + asset_width + space_between, 100))
-        elif accu == "paper":
-            screen.blit(paper, dest=(
-                margin + asset_width + space_between, 100))
-        elif accu == "sissors":
-            screen.blit(sissors, dest=(
-                margin + asset_width + space_between, 100))
+        pygame.draw.rect(state.screen, orange, pygame.Rect(
+            (state.margin + asset_width + space_between, 100), (asset_width, asset_height)))
 
+        draw_icon(state)
         # black border on selected item
         if iter[0] == state.selected_item:
             points = [
@@ -201,8 +144,9 @@ while running:
                 (x + asset_width, y + asset_height),
                 (x, y + asset_height),
             ]
-            pygame.draw.lines(screen, black, closed=True,
+            pygame.draw.lines(state.screen, black, closed=True,
                               points=points, width=10)
+        # scoring
 
     pygame.display.flip()
     clock.tick(60)  # limits FPS to 60
