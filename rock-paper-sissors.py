@@ -12,6 +12,14 @@ class GameState:
         self.timer = 0
         self.fade_alpha = 255
         self.fading_active = False
+        self.index_ = None
+        self.lovly_sissors = pygame.image.load(
+            os.path.join("assets", "sissors.png"))
+        self.lovly_paper = pygame.image.load(
+            os.path.join("assets", "paper.png"))
+        self.lovly_stone = pygame.image.load(
+            os.path.join("assets", "stone.png"))
+        self.locked = False
 
 
 # pygame setup
@@ -32,18 +40,17 @@ screen = pygame.display.set_mode((screen_width, screen_height))
 clock = pygame.time.Clock()
 
 # Assets
-lovly_sissors = pygame.image.load(os.path.join("assets", "sissors.png"))
-lovly_paper = pygame.image.load(os.path.join("assets", "paper.png"))
-lovly_stone = pygame.image.load(os.path.join("assets", "stone.png"))
+# lovly_sissors = pygame.image.load(os.path.join("assets", "sissors.png"))
+# lovly_paper = pygame.image.load(os.path.join("assets", "paper.png"))
+# lovly_stone = pygame.image.load(os.path.join("assets", "stone.png"))
 
 sissors = pygame.image.load(os.path.join("assets", "sissors.png"))
 paper = pygame.image.load(os.path.join("assets", "paper.png"))
 stone = pygame.image.load(os.path.join("assets", "stone.png"))
-
-icons = [lovly_stone, lovly_paper, lovly_sissors]
-
 # In-game state
 state = GameState()
+icons = [state.lovly_stone, state.lovly_paper, state.lovly_sissors]
+
 
 running = True
 selected_item = 1
@@ -68,19 +75,27 @@ while running:
             if event.key == pygame.K_ESCAPE:
                 running = False
 
-            if not locked:
+            if not state.locked:
                 if event.key == pygame.K_RIGHT:
-                    selected_item += 1
+                    state.selected_item += 1
                 elif event.key == pygame.K_LEFT:
-                    selected_item -= 1
+                    state.selected_item -= 1
 
-            if selected_item > 2:
-                selected_item = 0
-            elif selected_item < 0:
-                selected_item = 2
+            if state.selected_item > 2:
+                state.selected_item = 0
+            elif state.selected_item < 0:
+                state.selected_item = 2
 
-            if event.key == pygame.K_SPACE:
-                activator(1, state, lovly_sissors, lovly_stone, event)
+            if not state.locked and event.key == pygame.K_SPACE:
+                if state.selected_item == 0:
+                    activator(0, state, state.lovly_sissors,
+                              state.lovly_paper, event)
+                elif state.selected_item == 1:
+                    activator(1, state, state.lovly_sissors,
+                              state.lovly_stone, event)
+                elif state.selected_item == 2:
+                    activator(2, state, state.lovly_paper,
+                              state.lovly_stone, event)
 
             # if locked == False:
             #     if event.key == pygame.K_SPACE and selected_item == 0 and (timerRock == 0 or timerRock >= 1.5):
@@ -99,8 +114,11 @@ while running:
             #         locked = True
 
     # fading the icons and orange
-    handle_fade(lovly_sissors, lovly_stone, state)
+    handle_fade(1, state.lovly_sissors, state.lovly_stone, state)
 
+    handle_fade(0, state.lovly_sissors, state.lovly_paper, state)
+
+    handle_fade(2, state.lovly_paper, state.lovly_stone, state)
     # if start_timerRock:
     #     timerRock += 1 / 60
     #     lovly_sissors.set_alpha(max(0, 255 - (timerRock / 1.5 * 255)))
@@ -176,7 +194,7 @@ while running:
                 margin + asset_width + space_between, 100))
 
         # black border on selected item
-        if iter[0] == selected_item:
+        if iter[0] == state.selected_item:
             points = [
                 (x, y),
                 (x + asset_width, y),
