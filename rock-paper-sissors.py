@@ -2,23 +2,27 @@
 import pygame
 import os
 import random
+
+from core_types import GameChoice, asset_loader
 from turning_things_into_functions import fadingEfect, activator, handle_fade, change_icon, draw_icon
 
 
 class GameState:
     def __init__(self):
-        self.selected_item = 1
+        self.selected_item = GameChoice.Rock
         self.running = True
         self.timer = 0
         self.fade_alpha = 255
         self.fading_active = False
         self.index_ = None
-        self.lovly_sissors = pygame.image.load(
-            os.path.join("assets", "sissors.png"))
-        self.lovly_paper = pygame.image.load(
-            os.path.join("assets", "paper.png"))
-        self.lovly_stone = pygame.image.load(
-            os.path.join("assets", "stone.png"))
+        self.lovly_sissors = asset_loader(GameChoice.Sissors)
+        self.lovly_paper = asset_loader(GameChoice.Paper)
+        self.lovly_stone = asset_loader(GameChoice.Rock)
+        self.icons = [
+            self.lovly_stone,
+            self.lovly_paper,
+            self.lovly_sissors,
+        ]
         self.locked = False
         self.enemy_alpha = 255
         self.accu = "rock"
@@ -35,8 +39,9 @@ class GameState:
         self.paper = pygame.image.load(os.path.join("assets", "paper.png"))
         self.stone = pygame.image.load(os.path.join("assets", "stone.png"))
         self.font = font
-        self.selected_item = 1
-
+        self.wins = 0
+        self.loses = 0
+        self.ties = 0
 
 # pygame setup
 pygame.init()
@@ -55,60 +60,45 @@ clock = pygame.time.Clock()
 
 # In-game state
 state = GameState()
-icons = [state.lovly_stone, state.lovly_paper, state.lovly_sissors]
 
-
-running = True
-timerRock = 0
-timerPaper = 0
-timerSissors = 0
-start_timerRock = False
-start_timerPaper = False
-start_timerSissors = False
-locked = False
-fade_alpha = 255
-
-while running:
+while state.running:
     deltaTime = clock.get_time() / 1000
 
     # closing the screan
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
-            running = False
+            state.running = False
         elif event.type == pygame.KEYDOWN:
             if event.key == pygame.K_ESCAPE:
-                running = False
+                state.running = False
 
             # chosing part
             if not state.locked:
                 if event.key == pygame.K_RIGHT:
-                    state.selected_item += 1
+                    state.selected_item = state.selected_item.next()
                 elif event.key == pygame.K_LEFT:
-                    state.selected_item -= 1
+                    state.selected_item = state.selected_item.previous()
 
-            if state.selected_item > 2:
-                state.selected_item = 0
-            elif state.selected_item < 0:
-                state.selected_item = 2
+            # if state.selected_item > 2:
+            #     state.selected_item = 0
+            # elif state.selected_item < 0:
+            #     state.selected_item = 2
 
             # handling fading
             if not state.locked and event.key == pygame.K_SPACE:
-                if state.selected_item == 0:
-                    activator(0, state, state.lovly_sissors,
-                              state.lovly_paper, event)
-                elif state.selected_item == 1:
-                    activator(1, state, state.lovly_sissors,
-                              state.lovly_stone, event)
-                elif state.selected_item == 2:
-                    activator(2, state, state.lovly_paper,
-                              state.lovly_stone, event)
+                if state.selected_item.value == 0:
+                    activator(0, state, event)
+                elif state.selected_item.value == 1:
+                    activator(1, state, event)
+                elif state.selected_item.value == 2:
+                    activator(2, state, event)
 
     # fading the icons and orange
-    handle_fade(1, state.lovly_sissors, state.lovly_stone, state)
+    handle_fade(state)
 
-    handle_fade(0, state.lovly_sissors, state.lovly_paper, state)
+    handle_fade(state)
 
-    handle_fade(2, state.lovly_paper, state.lovly_stone, state)
+    handle_fade(state)
 
     state.screen.fill("grey")
 
@@ -117,7 +107,7 @@ while running:
         change_icon(state)
 
     # RENDER YOUR GAME HERE
-    for iter in enumerate(icons):
+    for iter in enumerate(state.icons):
         x = state.margin + (asset_width + space_between) * iter[0]
         y = (screen_height - asset_height) - 150
 
@@ -137,7 +127,7 @@ while running:
 
         draw_icon(state)
         # black border on selected item
-        if iter[0] == state.selected_item:
+        if iter[0] == state.selected_item.value:
             points = [
                 (x, y),
                 (x + asset_width, y),
