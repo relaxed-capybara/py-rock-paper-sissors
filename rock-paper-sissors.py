@@ -3,7 +3,8 @@ import pygame
 import os
 import random
 
-from core_types import GameChoice, asset_loader
+from core_types import GameChoice
+from core_helpers import asset_loader
 from turning_things_into_functions import fadingEfect, activator, handle_fade, change_icon, draw_icon
 
 
@@ -14,7 +15,6 @@ class GameState:
         self.timer = 0
         self.fade_alpha = 255
         self.fading_active = False
-        self.index_ = None
         self.lovly_sissors = asset_loader(GameChoice.Sissors)
         self.lovly_paper = asset_loader(GameChoice.Paper)
         self.lovly_stone = asset_loader(GameChoice.Rock)
@@ -35,13 +35,26 @@ class GameState:
         self.screen = pygame.display.set_mode((screen_width, screen_height))
         self.margin = (screen_width - (asset_width *
                        3 + space_between * 2)) / 2
-        self.sissors = pygame.image.load(os.path.join("assets", "sissors.png"))
-        self.paper = pygame.image.load(os.path.join("assets", "paper.png"))
-        self.stone = pygame.image.load(os.path.join("assets", "stone.png"))
+        self.sissors = asset_loader(GameChoice.Sissors)
+        self.paper = asset_loader(GameChoice.Paper)
+        self.stone = asset_loader(GameChoice.Rock)
         self.font = font
         self.wins = 0
         self.loses = 0
         self.ties = 0
+        self.cpu_choice = None
+
+    def cpu_asset_for_choice(self):
+        if self.cpu_choice is None:
+            return None
+
+        if self.cpu_choice == GameChoice.Sissors:
+            return self.sissors
+        if self.cpu_choice == GameChoice.Paper:
+            return self.paper
+        if self.cpu_choice == GameChoice.Rock:
+            return self.stone
+
 
 # pygame setup
 pygame.init()
@@ -79,19 +92,9 @@ while state.running:
                 elif event.key == pygame.K_LEFT:
                     state.selected_item = state.selected_item.previous()
 
-            # if state.selected_item > 2:
-            #     state.selected_item = 0
-            # elif state.selected_item < 0:
-            #     state.selected_item = 2
-
             # handling fading
             if not state.locked and event.key == pygame.K_SPACE:
-                if state.selected_item.value == 0:
-                    activator(0, state, event)
-                elif state.selected_item.value == 1:
-                    activator(1, state, event)
-                elif state.selected_item.value == 2:
-                    activator(2, state, event)
+                activator(state)
 
     # fading the icons and orange
     handle_fade(state)
@@ -107,26 +110,26 @@ while state.running:
         change_icon(state)
 
     # RENDER YOUR GAME HERE
+
+    # Draw CPU choice
+    pygame.draw.rect(state.screen, orange, pygame.Rect(
+        (state.margin + asset_width + space_between, 100), (asset_width, asset_height)))
+    draw_icon(state)
+
     for iter in enumerate(state.icons):
         x = state.margin + (asset_width + space_between) * iter[0]
         y = (screen_height - asset_height) - 150
 
         # create fading orange surface with alpha
-        # wtf
         orange_surface = pygame.Surface(
             (asset_width, asset_height), pygame.SRCALPHA)
         orange_surface.fill((orange.r, orange.g, orange.b, state.fade_alpha))
         state.screen.blit(orange_surface, (x, y))
 
-        # blit icons as before
+        # blit player's icons
         state.screen.blit(iter[1], dest=(x, y))
 
-        # second static orange rect (unchanged)
-        pygame.draw.rect(state.screen, orange, pygame.Rect(
-            (state.margin + asset_width + space_between, 100), (asset_width, asset_height)))
-
-        draw_icon(state)
-        # black border on selected item
+        # black border on currently selected item
         if iter[0] == state.selected_item.value:
             points = [
                 (x, y),
@@ -136,7 +139,6 @@ while state.running:
             ]
             pygame.draw.lines(state.screen, black, closed=True,
                               points=points, width=10)
-        # scoring
 
     pygame.display.flip()
     clock.tick(60)  # limits FPS to 60

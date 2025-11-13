@@ -1,4 +1,5 @@
-import pygame
+from core_helpers import pick_cpu_choice
+from core_types import GameChoice
 
 
 def fadingEfect(FadingItem1, FadingItem2, game_state):
@@ -16,27 +17,28 @@ def fadingEfect(FadingItem1, FadingItem2, game_state):
         game_state.enemy_alpha = 0
 
 
-def activator(index_, game_state, event):
-    if event.key == pygame.K_SPACE and game_state.selected_item.value == index_ and (game_state.timer == 0 or game_state.timer >= 1.5):
-        game_state.timer = 0
-        game_state.fading_active = True
-        game_state.index_ = index_
-        game_state.locked = True
+def activator(game_state):
+    game_state.timer = 0
+    game_state.fading_active = True
+    game_state.locked = True
+    game_state.cpu_choice = pick_cpu_choice()
+
+    print(f"CPU chose {game_state.cpu_choice}")
 
 
 def handle_fade(game_state):
     """Call this every frame in the main loop to handle fading."""
     if game_state.fading_active:
 
-        if game_state.index_ == 0:
+        if game_state.selected_item == GameChoice.Rock:
             fadingEfect(game_state.lovly_paper,
                         game_state.lovly_sissors, game_state)
 
-        if game_state.index_ == 1:
+        if game_state.selected_item == GameChoice.Paper:
             fadingEfect(game_state.lovly_stone,
                         game_state.lovly_sissors, game_state)
 
-        if game_state.index_ == 2:
+        if game_state.selected_item == GameChoice.Sissors:
             fadingEfect(game_state.lovly_paper,
                         game_state.lovly_stone, game_state)
 
@@ -54,6 +56,12 @@ def change_icon(game_state):
 
 
 def draw_icon(game_state):
+    if game_state.cpu_choice is not None:
+        img = game_state.cpu_asset_for_choice()
+        game_state.screen.blit(img, dest=(
+            game_state.margin + game_state.asset_width + game_state.space_between, 100))
+        return
+
     if game_state.accu == "rock":
         game_state.screen.blit(game_state.stone, dest=(
             game_state.margin + game_state.asset_width + game_state.space_between, 100))

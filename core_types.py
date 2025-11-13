@@ -1,5 +1,4 @@
 import os
-import pygame
 from enum import Enum
 
 
@@ -25,13 +24,7 @@ class GameChoice(Enum):
             return GameChoice.Paper
 
 
-def asset_loader(type):
-    asset_file = ""
-    if type == GameChoice.Rock:
-        asset_file = "stone.png"
-    elif type == GameChoice.Paper:
-        asset_file = "paper.png"
-    elif type == GameChoice.Sissors:
-        asset_file = "sissors.png"
-
-    return pygame.image.load(os.path.join("assets", asset_file))
+class GameResult(Enum):
+    Tie = 0
+    HumanWin = 1
+    HumanLost = 2

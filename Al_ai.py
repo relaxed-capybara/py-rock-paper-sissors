@@ -6,13 +6,14 @@ last_number = None
 def random_less_repeats():
     global last_number
     new_number = random.randint(0, 2)
-    if new_number == last_number:
+    while new_number == last_number:
         new_number = random.randint(0, 2)
     last_number = new_number
     return new_number
 
 
-enemy_choice = random_less_repeats()
+# enemy_choice = random_less_repeats()
+cpu_choice
 
 
 def grading_score(game_state):
@@ -24,7 +25,7 @@ def grading_score(game_state):
         if enemy_choice == 0 and game_state.selected_item == 2:  # won
             game_state.ties += 1
 
-        if enemy_choice == 1 and game_state.selected_item == 0:  # lost
+        if cpu_choice == 1 and game_state.selected_item == 0:  # lost
             game_state.loses += 1
         if enemy_choice == 1 and game_state.selected_item == 1:  # tie
             game_state.ties += 1
